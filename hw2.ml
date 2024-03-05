@@ -178,18 +178,23 @@ module DictList : DICT with type key = string = struct
   type key = string
   type 'a dict = (key * 'a) list
 
-  let empty _ = raise NotImplemented
-  let lookup _ _ = raise NotImplemented
-  let delete _ _ = raise NotImplemented
-  let insert _ _ = raise NotImplemented
+  let empty () = []
+  let lookup d k =
+    let el = List.filter (fun (k', _) -> k' = k) d in
+    match el with [] -> None | (_, v) :: _ -> Some v
+  let delete d k = List.filter (fun (k', _) -> k' <> k) d
+  let insert d (k, v) =
+    match lookup d k with
+    | None -> (k, v) :: d
+    | _ -> List.map (fun (k', v') -> if k' = k then (k, v) else (k', v')) d
 end
 
 module DictFun : DICT with type key = string = struct
   type key = string
   type 'a dict = key -> 'a option
 
-  let empty _ = raise NotImplemented
-  let lookup _ _ = raise NotImplemented
-  let delete _ _ = raise NotImplemented
-  let insert _ _ = raise NotImplemented
+  let empty () _ = None
+  let lookup d k = d k
+  let delete d k k' = if k' = k then None else d k'
+  let insert d (k, v) k' = if k' = k then Some v else d k'
 end
