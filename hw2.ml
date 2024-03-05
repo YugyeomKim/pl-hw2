@@ -158,39 +158,20 @@ module Heap : HEAP = struct
   exception InvalidLocation
 
   type loc = int
-  type 'a htree = Empty | Leaf of 'a | Node of 'a htree * 'a * 'a htree
-  type 'a heap = 'a htree * loc
-
-  let empty () = (Empty, 0)
-  let rec allocate h v = raise NotImplemented
-
-  (* match h with
-     | loc, tree ->
-         let location = loc in
-         let newTree = insert_into_tree tree location v in
-         ((loc + 1, newTree), location) *)
+  type 'a heap = 'a list
+  let empty () = []
+  let allocate h v =
+    let new_loc = List.length h in
+    (h @ [ v ], new_loc)
 
   let dereference h l =
-    let rec getDirections l =
-      match l with
-      | 0 -> raise InvalidLocation
-      | 1 -> []
-      | _ ->
-          if l mod 2 = 1 then getDirections (l / 2) @ [ true ]
-          else getDirections (l / 2) @ [ false ]
-    in
-    let directions = getDirections l in
-    let rec getTarget tree directions =
-      match (tree, directions) with
-      | Leaf v, [] -> v
-      | Node (_, v, _), [] -> v
-      | Node (left, _, _), true :: rest -> getTarget left rest
-      | Node (_, _, right), false :: rest -> getTarget right rest
-      | _ -> raise InvalidLocation
-    in
-    match h with tree, _ -> getTarget tree directions
-
-  let update _ _ _ = raise NotImplemented
+    try List.nth h l
+    with Failure _ | Invalid_argument _ -> raise InvalidLocation
+  let rec update h l v =
+    match h with
+    | [] -> raise InvalidLocation
+    | first :: rest ->
+        if l = 0 then v :: rest else first :: update rest (l - 1) v
 end
 
 module DictList : DICT with type key = string = struct
